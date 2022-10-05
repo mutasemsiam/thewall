@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodingDojo Wall</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+</head>
+
+<body>
+    <div class="success_container">
+        <header class="main-success">
+            <h5><strong>CodingDojo Wall</strong></h5>
+            <div class="header_right">
+                <h6>Welcome {{request.session.name}}</h6>
+                <a href="/logout">Logout</a>
+            </div>
+        </header>
+    
+
+        <form action="add_message" method="post">
+            {% csrf_token %}
+            <div class="form-group message-container col-sm-10">
+                <label for="exampleFormControlTextarea1">Post a message</label>
+                <div class="message-inner">
+                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="4"
+                        name="add-message"></textarea>
+
+                    <button type="submit" class="btn btn-primary form-control col-lg-3" id="add-button">Post a
+                        message</button>
+                </div>
+            </div>
+        </form>
+
+        <div class=" message-container col-sm-10">
+            {% for message in all_the_messages reversed %}
+            <header class="message-header">
+                <h6>{{message.user.first_name}} {{message.user.last_name}} - {{message.created_at}}</h6>
+                <form action="delete_msg" method="post" onSubmit="return submitForm(this);">
+                    {% csrf_token %}
+                    {% if request.session.user_id == message.user.id %}
+                    <input type="hidden" name="which_message" value="{{message.id}}">
+                    <button type="submit" id="delete_btn">Delete</button>
+
+                    {% endif %}
+                </form>
+            </header>
+            <div class="message-inside">
+                <h6>{{message.message}}</h6>
+                <div class="posted-comment">
+                    {% for comment in message.comments.all %}
+                    <p class="comment-header">{{comment.user.first_name}} {{comment.user.last_name}} -
+                        {{comment.created_at}}</p>
+                    <p>{{comment.comment}}</p>
+                    {% endfor %}
+                </div>
+                <form action="add_comment" method="post">
+                    {% csrf_token %}
+                    <label for="exampleFormControlTextarea1">Post a comment</label>
+                    <div class="message-inner">
+                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="4"
+                            name="add-comment"></textarea>
+                        <input type="hidden" name="which_message" value="{{message.id}}">
+                        <button type="submit" class="btn btn-primary form-control col-lg-3" id="comment-button">Post a
+                            comment</button>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <script>
+        function submitForm(form) {
+            swal({
+                title: "Are you sure you want to delete this message?",
+                text: "If you delete it, it will be gone forever.",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        form.submit();
+                    }
+
+                });
+            return false;
+        }
+    </script>
+</body>
+
+</html>
